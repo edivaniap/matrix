@@ -1,0 +1,345 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --accent: #00ff41;
+  --accent-rgb: 0, 255, 65;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+#matrix {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.theme-picker {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 0.4rem 0.7rem;
+  background: rgba(0, 15, 0, 0.55);
+  backdrop-filter: blur(2px);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
+
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+.select-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* o <select> vira uma camada invisível que só existe pra capturar o clique
+   e abrir a lista; quem dá o tamanho da caixinha agora é o .select-label */
+.theme-picker select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.theme-picker select option {
+  background: #000;
+  color: #0f0;
+}
+
+/* seta customizada, fixa ao lado do texto real (não do select invisível) */
+.select-shell::after {
+  content: '▾';
+  color: var(--accent);
+  pointer-events: none;
+  font-size: 1.3em;
+  margin-left: 0.4em;
+}
+
+/* label "de verdade": fica no fluxo normal, então a caixinha cresce pra
+   caber ele (inclusive o combo dinâmico do tema Aleatório), sem alterar o
+   texto que aparece dentro da lista suspensa do <select> */
+.select-label {
+  position: relative;
+  color: var(--accent);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.download-panel {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 10;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: 0.5rem;
+
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+.download-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+
+  padding: 0.4rem 0.7rem;
+  background: rgba(0, 15, 0, 0.55);
+  backdrop-filter: blur(2px);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
+
+  color: var(--accent);
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.download-btn:hover {
+  box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.8);
+  transform: scale(1.03);
+}
+
+.download-btn:active {
+  transform: scale(0.97);
+}
+
+.download-arrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+#download-toggle[aria-expanded="true"] .download-arrow {
+  transform: rotate(180deg);
+}
+
+.download-options {
+  display: none;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 230px;
+
+  padding: 0.75rem;
+  background: rgba(0, 15, 0, 0.7);
+  backdrop-filter: blur(2px);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
+}
+
+.download-options.open {
+  display: flex;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.switch-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 2.2em;
+  height: 1.2em;
+  background: rgba(var(--accent-rgb), 0.25);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.2s ease;
+}
+
+.switch-row input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0.15em;
+  transform: translateY(-50%);
+  width: 0.85em;
+  height: 0.85em;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: left 0.2s ease;
+}
+
+.switch-row input[type="checkbox"]:checked {
+  background: rgba(var(--accent-rgb), 0.55);
+}
+
+.switch-row input[type="checkbox"]:checked::before {
+  left: calc(100% - 1em);
+}
+
+.switch-row input[type="checkbox"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.download-confirm-btn {
+  margin-top: 0.15rem;
+  padding: 0.4rem 0.7rem;
+  background: rgba(var(--accent-rgb), 0.15);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.download-confirm-btn:hover {
+  box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.8);
+}
+
+.download-confirm-btn:active {
+  transform: scale(0.97);
+}
+
+.hud {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--accent);
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
+  pointer-events: none;
+  user-select: none;
+
+  padding: 1.5rem 2.5rem;
+  background: rgba(0, 15, 0, 0.55);
+  backdrop-filter: blur(2px);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  box-shadow:
+    0 0 12px rgba(var(--accent-rgb), 0.6),
+    0 0 30px rgba(var(--accent-rgb), 0.35),
+    inset 0 0 20px rgba(var(--accent-rgb), 0.15);
+
+  overflow: hidden;
+  transition: color 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
+}
+
+/* varredura de scanlines, tipo tela de CRT/monitor de segurança antigo */
+.hud::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 1px,
+    rgba(0, 0, 0, 0.4) 2px,
+    rgba(0, 0, 0, 0.4) 3px
+  );
+  animation: scanlines 6s linear infinite;
+  z-index: 2;
+}
+
+@keyframes scanlines {
+  from { background-position: 0 0; }
+  to { background-position: 0 300px; }
+}
+
+.hud h1 {
+  font-size: clamp(1.8rem, 6vw, 4rem);
+  animation: flicker 2.5s infinite;
+}
+
+.hud h1 .title-text {
+  /* letter-spacing deixa um "respiro" sobrando depois do último
+     caractere; a margem negativa compensa pra centralizar de verdade */
+  position: relative;
+  display: inline-block;
+  letter-spacing: 0.3rem;
+  margin-right: -0.3rem;
+}
+
+/* falhas horizontais tipo monitor velho/câmera de segurança (efeito FNAF) */
+.hud h1 .title-text::before,
+.hud h1 .title-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  letter-spacing: 0.3rem;
+  background: rgba(0, 15, 0, 0.55);
+}
+
+.hud h1 .title-text::before {
+  color: #ff003c;
+  clip-path: inset(0 0 100% 0);
+  animation: glitch-tear-1 14s infinite steps(1);
+}
+
+.hud h1 .title-text::after {
+  color: #00f0ff;
+  clip-path: inset(0 0 100% 0);
+  animation: glitch-tear-2 14s infinite steps(1);
+}
+
+@keyframes glitch-tear-1 {
+  0%, 96.5%, 100% { clip-path: inset(0 0 100% 0); transform: translateX(0); }
+  97% { clip-path: inset(12% 0 58% 0); transform: translateX(-5px); }
+  97.5% { clip-path: inset(45% 0 15% 0); transform: translateX(4px); }
+  98% { clip-path: inset(70% 0 4% 0); transform: translateX(-3px); }
+  98.5% { clip-path: inset(5% 0 80% 0); transform: translateX(5px); }
+  99% { clip-path: inset(0 0 100% 0); transform: translateX(0); }
+}
+
+@keyframes glitch-tear-2 {
+  0%, 95.5%, 100% { clip-path: inset(0 0 100% 0); transform: translateX(0); }
+  96% { clip-path: inset(60% 0 10% 0); transform: translateX(5px); }
+  96.5% { clip-path: inset(20% 0 62% 0); transform: translateX(-4px); }
+  97% { clip-path: inset(78% 0 5% 0); transform: translateX(3px); }
+  97.5% { clip-path: inset(35% 0 40% 0); transform: translateX(-5px); }
+  98% { clip-path: inset(0 0 100% 0); transform: translateX(0); }
+}
+
+.hud p {
+  margin-top: 0.5rem;
+  font-size: clamp(0.8rem, 2vw, 1.2rem);
+  letter-spacing: 0.15rem;
+  opacity: 0.85;
+}
+
+@keyframes flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+  20%, 22%, 24%, 55% { opacity: 0.3; }
+}

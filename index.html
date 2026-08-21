@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matrix Digital Rain</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+
+  <div class="theme-picker">
+    <div class="select-shell">
+      <select id="theme-select" autocomplete="off">
+        <option value="matrix">🟢 Matrix Clássico</option>
+        <option value="random">🎲 Aleatório</option>
+        <option value="rainbow">🏳️‍🌈 LGBTQIA+ Pride</option>
+        <option value="trans">🏳️‍⚧️ Trans</option>
+        <option value="bi">💗 Bissexual</option>
+        <option value="lesbian">🧡 Lésbica</option>
+        <option value="pan">💛 Pansexual</option>
+        <option value="nonbinary">💜 Não-binárie</option>
+        <option value="ace">🖤 Assexual</option>
+      </select>
+      <span id="theme-select-label" class="select-label" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <div class="download-panel" id="download-panel">
+    <button id="download-toggle" class="download-btn" type="button" aria-expanded="false" aria-controls="download-options">⬇️ Baixar PNG <span class="download-arrow">▾</span></button>
+    <div class="download-options" id="download-options">
+      <label class="switch-row">
+        <span>Incluir chuva (fundo)</span>
+        <input type="checkbox" checked disabled>
+      </label>
+      <label class="switch-row">
+        <span>Incluir título</span>
+        <input type="checkbox" id="opt-title" checked>
+      </label>
+      <label class="switch-row">
+        <span>Incluir frase aleatória</span>
+        <input type="checkbox" id="opt-quote" checked>
+      </label>
+      <button id="download-confirm" class="download-confirm-btn" type="button">⬇️ Baixar PNG</button>
+    </div>
+  </div>
+
+  <div class="hud">
+    <h1><span class="title-text" data-text="wake up...">Wake up...</span></h1>
+    <p id="quote">Siga o coelho branco 🐇</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
