@@ -1,7 +1,7 @@
 const canvas = document.getElementById('matrix');
 const ctx = canvas.getContext('2d');
 
-let width, height, columns, drops, fontSize;
+let width, height, columns, drops, fontSize, currentChars;
 
 // Katakana (metade-largura, igual aos créditos originais do filme) + latim + números
 const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
@@ -38,6 +38,13 @@ function pickWeightedChar() {
 const COR_RASTRO = 'rgba(0, 0, 0, 0.05)'; // preto semi-transparente que esmaece o rastro
 const COR_FAISCA = '#ffffff'; // branco do caractere na ponta, mais brilhante
 const CHANCE_FAISCA = 0.02; // probabilidade de um caractere sair na cor da faísca
+// fração de linha avançada por frame; 1 = como era antes desta constante
+// existir, menor = mais lenta. Não é somada direto em `drops[i]` (isso tirava
+// a posição da "grade" de fontSize e sobrepunha caracteres visualmente); em
+// vez disso, acumula em `acumuladorQueda` e só avança linha inteira quando
+// o acumulado completa 1, mantendo cada caractere sempre alinhado à grade
+const VELOCIDADE_QUEDA = 0.5;
+let acumuladorQueda = 0;
 
 // paleta de cada tema: as cores são lidas de cima pra baixo na tela,
 // como as faixas horizontais de uma bandeira
@@ -101,6 +108,10 @@ function setup() {
 
   // cada coluna começa numa altura aleatória (efeito de chuva assíncrona)
   drops = new Array(columns).fill(0).map(() => Math.floor((Math.random() * height) / fontSize) * -1);
+
+  // caractere atualmente desenhado em cada coluna; só troca quando a coluna
+  // muda de linha, pra não sortear um símbolo novo em cima do mesmo lugar
+  currentChars = new Array(columns).fill(0).map(() => pickWeightedChar());
 }
 
 function draw() {
@@ -110,20 +121,34 @@ function draw() {
 
   ctx.font = `${fontSize}px monospace`;
 
+  // quantas linhas inteiras avançar neste frame (0 na maioria dos frames,
+  // já que VELOCIDADE_QUEDA < 1); o resto fica acumulado pro próximo frame
+  acumuladorQueda += VELOCIDADE_QUEDA;
+  const linhasParaAvancar = Math.floor(acumuladorQueda);
+  acumuladorQueda -= linhasParaAvancar;
+
   for (let i = 0; i < drops.length; i++) {
-    const char = pickWeightedChar();
     const x = i * fontSize;
     const y = drops[i] * fontSize;
 
     // caractere da ponta mais brilhante (branco), cauda na cor do tema
     ctx.fillStyle = Math.random() < CHANCE_FAISCA ? COR_FAISCA : colorForY(y);
-    ctx.fillText(char, x, y);
+    ctx.fillText(currentChars[i], x, y);
 
     // reinicia a coluna no topo com chance aleatória, já passando da tela
+    let mudouDeLinha = linhasParaAvancar > 0;
     if (y > height && Math.random() > 0.975) {
       drops[i] = 0;
+      mudouDeLinha = true;
+    } else {
+      drops[i] += linhasParaAvancar;
     }
-    drops[i]++;
+
+    // só sorteia caractere novo quando a coluna muda de linha de verdade;
+    // enquanto "espera" pra avançar, redesenha o mesmo símbolo no lugar
+    if (mudouDeLinha) {
+      currentChars[i] = pickWeightedChar();
+    }
   }
 }
 
