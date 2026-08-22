@@ -49,7 +49,8 @@ Abra o [`script.js`](../script.js) e brinque com:
 | `COR_RASTRO` | topo do arquivo | rastro mais longo (alpha menor) ou mais curto (alpha maior) 🎞️ |
 | `THEMES` | topo do arquivo | cores da chuva (adicione seu próprio tema, ver seção 8) 🎨 |
 | `PESO_KATAKANA` / `PESO_LATIM` / `PESO_NUMEROS` | topo do arquivo | proporção entre katakana, letras e números na chuva (os três precisam somar 1) 🔤 |
-| `setInterval(draw, 33)` | fim do arquivo | velocidade geral da animação ⏱️ |
+| `setInterval(draw, 33)` | fim do arquivo | velocidade geral da animação (fps, afeta também o flicker dos caracteres) ⏱️ |
+| `VELOCIDADE_QUEDA` | topo do arquivo | velocidade só da queda das colunas, sem afetar o fps 🌧️ |
 
 ---
 
@@ -183,13 +184,29 @@ A correção não foi diminuir o alfabeto latino (isso perderia variedade), foi 
 
 `setInterval(draw, 33)` chama `draw()` a cada 33 milissegundos. Fazendo a conta: `1000ms ÷ 33ms ≈ 30.3`, ou seja, ~30 quadros por segundo.
 
-Dentro de `draw()`, `drops[i]++` acontece sem condição, uma linha por frame, sempre. Como cada linha equivale a `fontSize` pixels (hoje, 20px), dá pra calcular a velocidade real de queda:
+`VELOCIDADE_QUEDA` (hoje, `0.5`) é a fração de linha que a coluna deveria avançar por frame, em média. Como cada linha equivale a `fontSize` pixels (hoje, 20px), dá pra calcular a velocidade real de queda:
 
 ```
-20px por frame × 30 frames por segundo = 600px por segundo
+20px por linha × 0.5 linha por frame × 30 frames por segundo = 300px por segundo
 ```
 
-Ou seja, cada gota cai a uma velocidade constante de aproximadamente 600 pixels por segundo, não importa o tamanho da tela. É por isso que mudar `fontSize` também muda a velocidade percebida da chuva (colunas mais largas = pulos maiores = queda com aparência mais rápida), mesmo sem tocar no `setInterval`.
+Ou seja, cada gota cai a uma velocidade constante de aproximadamente 300 pixels por segundo (a metade do que era antes de existir o `VELOCIDADE_QUEDA`), não importa o tamanho da tela. `1` volta pro comportamento de antes desta constante existir (a issue #2 pediu justamente pra diminuir isso), valores menores deixam mais lenta, maiores que `1` deixam mais rápida do que estava. Não é uma medida da velocidade real do efeito no filme, é só a linha de base do nosso próprio código antes desse ajuste.
+
+**Detalhe que quebrou na primeira tentativa**: somar `VELOCIDADE_QUEDA` (0.5) direto em `drops[i]` parece óbvio, mas isso faz `y = drops[i] * fontSize` cair fora dos múltiplos de `fontSize` (ex: 10px, 30px, 50px em vez de 0px, 20px, 40px). Como cada caractere de 20px precisa de quase esse espaço todo pra não encostar no vizinho, dois caracteres desenhados a só 10px de distância ficam visualmente sobrepostos. A correção foi separar duas coisas:
+
+- **A posição (`drops[i]`) sempre pula um `fontSize` inteiro por vez**, nunca fração, então nunca sobrepõe.
+- **Quantos frames esperar antes de dar esse pulo** é controlado por um acumulador:
+
+```js
+acumuladorQueda += VELOCIDADE_QUEDA;       // ex: 0.5, 1.0, 1.5, 2.0...
+const linhasParaAvancar = Math.floor(acumuladorQueda); // 0, 0, 1, 0, 1...
+acumuladorQueda -= linhasParaAvancar;      // guarda o resto pro próximo frame
+drops[i] += linhasParaAvancar;             // sempre inteiro
+```
+
+Com `VELOCIDADE_QUEDA = 0.5`, isso avança uma linha inteira a cada 2 frames (metade da frequência, mas o pulo continua do tamanho certo), em vez de meia linha a cada frame (frequência igual, pulo errado).
+
+**Segundo detalhe que quebrou**: mesmo com a posição corrigida, o caractere de cada coluna ainda era sorteado de novo (`pickWeightedChar()`) em **todo** frame, mesmo nos frames em que a linha não muda. Como o esmaecimento (`COR_RASTRO`) é só 5% de opacidade, dois símbolos diferentes desenhados na mesma posição em frames consecutivos (33ms de diferença) criavam um efeito de "fantasma"/duplicação temporária. A correção: `currentChars[i]` guarda o caractere atual de cada coluna, e só é sorteado de novo quando a coluna realmente muda de linha (avança ou reinicia no topo). Enquanto está "esperando" pra avançar, o mesmo símbolo é redesenhado no lugar, sem trocar.
 
 ---
 
