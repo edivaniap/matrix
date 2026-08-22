@@ -48,6 +48,7 @@ Abra o [`script.js`](../script.js) e brinque com:
 | `fontSize` | topo do arquivo | tamanho/densidade das colunas 📏 |
 | `COR_RASTRO` | topo do arquivo | rastro mais longo (alpha menor) ou mais curto (alpha maior) 🎞️ |
 | `THEMES` | topo do arquivo | cores da chuva (adicione seu próprio tema, ver seção 8) 🎨 |
+| `PESO_KATAKANA` / `PESO_LATIM` / `PESO_NUMEROS` | topo do arquivo | proporção entre katakana, letras e números na chuva (os três precisam somar 1) 🔤 |
 | `setInterval(draw, 33)` | fim do arquivo | velocidade geral da animação ⏱️ |
 
 ---
@@ -163,7 +164,7 @@ Curiosidade antes de entrar nas contas: **matriz**, em matemática, é justament
 
 | Onde | Código | O que faz |
 |---|---|---|
-| Caractere de cada frame | `chars[Math.floor(Math.random() * chars.length)]` | Multiplica pelo tamanho do alfabeto e arredonda pra baixo: sorteia um índice válido, ou seja, um símbolo aleatório |
+| Caractere de cada frame | `pickWeightedChar()` (dois `Math.random()` em sequência) | Primeiro sorteia **qual grupo** (katakana, latim ou números) usando os pesos de `PESO_KATAKANA`/`PESO_LATIM`/`PESO_NUMEROS`, depois sorteia um símbolo dentro daquele grupo com a mesma fórmula de índice de sempre. Ver detalhe abaixo |
 | Linha inicial de cada coluna | `Math.floor((Math.random() * height) / fontSize) * -1` | Sorteia uma posição vertical aleatória (negativa, acima da tela), pra cada coluna começar a cair num momento diferente. É o que faz a chuva parecer assíncrona desde o primeiro frame |
 | Cor de faísca | `Math.random() < CHANCE_FAISCA` (0.02) | Como `Math.random()` é uniforme entre 0 e 1, a chance de o resultado ser menor que 0.02 é exatamente 2%. É assim que se sorteia uma probabilidade a partir de um número contínuo |
 | Reinício da coluna | `Math.random() > 0.975` | Mesma lógica, só que ao contrário: 2,5% de chance por frame. Sem isso, todas as colunas reiniciariam no exato instante em que saem da tela, criando um padrão repetitivo visível. Com a chance, cada coluna "hesita" um tempo aleatório antes de voltar pro topo |
@@ -171,6 +172,12 @@ Curiosidade antes de entrar nas contas: **matriz**, em matemática, é justament
 | Frase aleatória | `quotes[Math.floor(Math.random() * quotes.length)]` | Mesma fórmula, sorteando entre as falas do filme |
 
 O padrão se repete: **índice aleatório** é sempre `Math.floor(Math.random() * tamanho_da_lista)`, e **probabilidade** é sempre `Math.random() < chance_desejada`.
+
+### Por que o caractere tem um sorteio em duas etapas
+
+No começo, cada caractere era sorteado de um único array só (`katakana + latin + numbers` grudados), com todos os símbolos tendo a mesma chance. Isso deixava letras A-Z aparecendo quase 22% das vezes, mais do que o efeito original do filme, onde a katakana domina claramente.
+
+A correção não foi diminuir o alfabeto latino (isso perderia variedade), foi separar em três grupos e sortear com pesos fixos: **80% katakana, 7% latim, 13% números** (`gruposDeCaracteres`, no topo do [`script.js`](../script.js)). Assim o alfabeto latino continua completo (todas as 26 letras podem aparecer), só que raramente, exatamente como no filme original.
 
 ### Os tempos
 
