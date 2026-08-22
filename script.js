@@ -7,7 +7,33 @@ let width, height, columns, drops, fontSize;
 const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
 const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const numbers = '0123456789';
-const chars = (katakana + latin + numbers).split('');
+
+// katakana domina a chuva, igual ao efeito original; latim e números aparecem
+// com o alfabeto completo, só que mais raramente (pesos somam 1)
+const PESO_KATAKANA = 0.80;
+const PESO_LATIM = 0.07;
+const PESO_NUMEROS = 0.13;
+
+const gruposDeCaracteres = [
+  { chars: katakana.split(''), peso: PESO_KATAKANA },
+  { chars: latin.split(''), peso: PESO_LATIM },
+  { chars: numbers.split(''), peso: PESO_NUMEROS },
+];
+
+// sorteia primeiro o grupo (pelo peso), depois um caractere dentro dele
+function pickWeightedChar() {
+  const r = Math.random();
+  let acumulado = 0;
+  for (const grupo of gruposDeCaracteres) {
+    acumulado += grupo.peso;
+    if (r < acumulado) {
+      return grupo.chars[Math.floor(Math.random() * grupo.chars.length)];
+    }
+  }
+  // sobra de arredondamento de ponto flutuante: cai no último grupo
+  const ultimoGrupo = gruposDeCaracteres[gruposDeCaracteres.length - 1].chars;
+  return ultimoGrupo[Math.floor(Math.random() * ultimoGrupo.length)];
+}
 
 const COR_RASTRO = 'rgba(0, 0, 0, 0.05)'; // preto semi-transparente que esmaece o rastro
 const COR_FAISCA = '#ffffff'; // branco do caractere na ponta, mais brilhante
@@ -85,7 +111,7 @@ function draw() {
   ctx.font = `${fontSize}px monospace`;
 
   for (let i = 0; i < drops.length; i++) {
-    const char = chars[Math.floor(Math.random() * chars.length)];
+    const char = pickWeightedChar();
     const x = i * fontSize;
     const y = drops[i] * fontSize;
 
