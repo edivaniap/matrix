@@ -141,8 +141,32 @@ No canto superior direito da tela tem um seletor 🎨. É a maior novidade do pr
 | 💛 Pansexual | Rosa, amarelo, azul |
 | 💜 Não-binárie | Amarelo, branco, roxo, preto |
 | 🖤 Assexual | Preto, cinza, branco, roxo |
+| 0️⃣1️⃣ Binário | Verde `#00ff41`, igual ao Matrix Clássico, mas com o alfabeto trocado (ver abaixo) |
 
 Quer adicionar outro tema? É só entrar no objeto `THEMES` em [`script.js`](../script.js) e criar uma nova entrada com `colors` (a lista de cores da faixa) e `accent` (a cor usada no brilho do painel e do seletor), depois adicionar a `<option>` correspondente no [`index.html`](../index.html). 🖌️
+
+### Tema com alfabeto próprio (Binário)
+
+Todos os temas até aqui só mudavam a **cor** da chuva, o alfabeto (katakana + latim + números, com os pesos da seção 9) continuava igual. O tema Binário quebra essa regra: ele define seu próprio conjunto de caracteres, só `0` e `1`, uma homenagem mais direta à computação.
+
+Isso funciona porque `THEMES.binary` tem uma propriedade extra, `chars`:
+
+```js
+binary: { colors: ['#00ff41'], accent: '#00ff41', chars: ['0', '1'] },
+```
+
+E o sorteio de caractere passou a checar isso primeiro:
+
+```js
+function pickChar() {
+  if (activeTheme.chars) {
+    return activeTheme.chars[Math.floor(Math.random() * activeTheme.chars.length)];
+  }
+  return pickWeightedChar();
+}
+```
+
+Se o tema ativo tiver `chars`, sorteia direto dali (uniforme, sem peso). Se não tiver (todos os outros temas), cai no sorteio ponderado padrão da seção 9. Quer criar outro tema com alfabeto próprio? É só adicionar `chars: [...]` na entrada dele em `THEMES`, funciona automaticamente.
 
 ---
 
