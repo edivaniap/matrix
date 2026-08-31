@@ -134,6 +134,7 @@ No canto superior direito da tela tem um seletor 🎨. É a maior novidade do pr
 | Tema | Cores |
 |---|---|
 | 🟢 Matrix Clássico | Verde `#00ff41`, o original |
+| 1️⃣ Matrix Binário | Verde `#00ff41`, igual ao Matrix Clássico, mas com o alfabeto trocado (ver abaixo) |
 | 🏳️‍🌈 LGBTQIA+ Pride | Vermelho, laranja, amarelo, verde, azul, roxo, rosa choque |
 | 🏳️‍⚧️ Trans | Azul claro, rosa, branco, rosa, azul claro |
 | 💗 Bissexual | Rosa/magenta, roxo, azul |
@@ -143,6 +144,60 @@ No canto superior direito da tela tem um seletor 🎨. É a maior novidade do pr
 | 🖤 Assexual | Preto, cinza, branco, roxo |
 
 Quer adicionar outro tema? É só entrar no objeto `THEMES` em [`script.js`](../script.js) e criar uma nova entrada com `colors` (a lista de cores da faixa) e `accent` (a cor usada no brilho do painel e do seletor), depois adicionar a `<option>` correspondente no [`index.html`](../index.html). 🖌️
+
+### Tema com alfabeto próprio (Matrix Binário)
+
+Todos os outros temas só mudam a **cor** da chuva, o alfabeto (katakana + latim + números, com os pesos da seção 9) continua igual. O Matrix Binário quebra essa regra: ele define seu próprio conjunto de caracteres, só `0` e `1`, uma homenagem mais direta à computação. Por isso ele fica logo depois do Matrix Clássico na lista, não junto das bandeiras, é uma variação do tema original, não uma identidade.
+
+Isso funciona porque `THEMES.binary` tem uma propriedade extra, `chars`:
+
+```js
+binary: { colors: ['#00ff41'], accent: '#00ff41', chars: ['0', '1'] },
+```
+
+E o sorteio de caractere passou a checar isso primeiro:
+
+```js
+function pickChar() {
+  if (activeTheme.chars) {
+    return activeTheme.chars[Math.floor(Math.random() * activeTheme.chars.length)];
+  }
+  return pickWeightedChar();
+}
+```
+
+Se o tema ativo tiver `chars`, sorteia direto dali (uniforme, sem peso). Se não tiver (todos os outros temas), cai no sorteio ponderado padrão da seção 9. Quer criar outro tema com alfabeto próprio? É só adicionar `chars: [...]` na entrada dele em `THEMES`, funciona automaticamente.
+
+### Agrupando visualmente o seletor
+
+Com o Matrix Binário e as bandeiras convivendo na mesma lista, fazia sentido separar visualmente "as duas variações do Matrix" (Clássico e Binário) das bandeiras LGBTQIA+ ali embaixo. O HTML tem uma tag feita pra isso, `<optgroup>`, mas na prática ela tem suporte muito ruim a customização entre navegadores: `background-color` simplesmente não pega em vários deles (Firefox nem aceita), então o cabeçalho do grupo acaba aparecendo com fundo branco padrão do navegador, destoando total do resto da página escura.
+
+A solução foi usar um `<option disabled>` como cabeçalho "fake" em vez de `<optgroup>`:
+
+```html
+<option disabled>Bandeiras LGBTQIA+</option>
+<option value="rainbow">🏳️‍🌈 LGBTQIA+ Pride</option>
+...
+```
+
+Como é um `<option>` normal (só que desabilitado, então não clicável), ele aceita nosso `background: #000` normalmente, igual qualquer outra opção. A cor do texto e o negrito que tentamos aplicar não pegam em todo navegador (o navegador força a aparência de opção desabilitada por cima), mas isso é só um detalhe estético a mais, o fundo preto já resolve o problema principal de não destoar. Como esse `<option>` não tem `value`, ele nunca aparece nas buscas por tema (`splitOptionLabel`), então não precisa de nenhum tratamento especial no JavaScript.
+
+**Recuo dos itens agrupados**: só o cabeçalho não bastava pra deixar claro visualmente que os temas ali embaixo "pertencem" àquele grupo. `padding-left` em `<option>` sofre do mesmo problema de suporte instável que vimos com `<optgroup>`, então o recuo é feito direto no texto, com dois espaços especiais (`&nbsp;`, non-breaking space) antes do emoji:
+
+```html
+<option value="rainbow">&nbsp;&nbsp;🏳️‍🌈 LGBTQIA+ Pride</option>
+```
+
+Espaço normal em HTML é "colapsado" (o navegador ignora espaços repetidos), mas `&nbsp;` nunca é, por isso ele funciona pra indentação onde um espaço comum não funcionaria. Isso criou um efeito colateral: a opção selecionada guarda esse recuo no `textContent`, e o texto que aparece no select **fechado** (`splitOptionLabel`) usava esse texto direto, então o recuo vazava pro rótulo fechado também, feio. A correção foi dar um `.trim()` no texto antes de separar emoji e nome, removendo o recuo só nesse rótulo, sem tocar no texto original da opção (que continua recuado dentro da lista).
+
+**Linha divisória antes do grupo**: como `border` em `<option>` também não é confiável entre navegadores (só `background-color` e `color` realmente funcionam ali), uma linha de verdade não dava. A alternativa foi simular com um caractere de desenho de linha (`─`, box drawing, diferente do travessão `—`) repetido numa opção desabilitada:
+
+```html
+<option disabled>──────────────────</option>
+<option disabled>Bandeiras LGBTQIA+</option>
+```
+
+Por ser texto puro, funciona igual em qualquer navegador, sem depender de nenhuma propriedade CSS instável.
 
 ---
 

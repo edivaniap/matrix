@@ -35,6 +35,15 @@ function pickWeightedChar() {
   return ultimoGrupo[Math.floor(Math.random() * ultimoGrupo.length)];
 }
 
+// temas podem definir seu próprio alfabeto (ex: binário, só 0 e 1); quando
+// não definem, cai no sorteio ponderado padrão (katakana/latim/números)
+function pickChar() {
+  if (activeTheme.chars) {
+    return activeTheme.chars[Math.floor(Math.random() * activeTheme.chars.length)];
+  }
+  return pickWeightedChar();
+}
+
 const COR_RASTRO = 'rgba(0, 0, 0, 0.05)'; // preto semi-transparente que esmaece o rastro
 const COR_FAISCA = '#ffffff'; // branco do caractere na ponta, mais brilhante
 const CHANCE_FAISCA = 0.02; // probabilidade de um caractere sair na cor da faísca
@@ -57,6 +66,7 @@ const THEMES = {
   pan: { colors: ['#ff218c', '#ffd800', '#21b1ff'], accent: '#ff218c' },
   nonbinary: { colors: ['#fcf434', '#ffffff', '#9c59d1', '#2c2c2c'], accent: '#9c59d1' },
   ace: { colors: ['#000000', '#a4a4a4', '#ffffff', '#810081'], accent: '#810081' },
+  binary: { colors: ['#00ff41'], accent: '#00ff41', chars: ['0', '1'] },
 };
 const themeKeys = Object.keys(THEMES);
 
@@ -111,7 +121,7 @@ function setup() {
 
   // caractere atualmente desenhado em cada coluna; só troca quando a coluna
   // muda de linha, pra não sortear um símbolo novo em cima do mesmo lugar
-  currentChars = new Array(columns).fill(0).map(() => pickWeightedChar());
+  currentChars = new Array(columns).fill(0).map(() => pickChar());
 }
 
 function draw() {
@@ -147,7 +157,7 @@ function draw() {
     // só sorteia caractere novo quando a coluna muda de linha de verdade;
     // enquanto "espera" pra avançar, redesenha o mesmo símbolo no lugar
     if (mudouDeLinha) {
-      currentChars[i] = pickWeightedChar();
+      currentChars[i] = pickChar();
     }
   }
 }
@@ -181,7 +191,9 @@ const savedTheme = localStorage.getItem(STORAGE_KEY) || 'matrix';
 // pega o texto de uma <option> (ex: "🏳️‍⚧️ Trans") e separa emoji do nome
 function splitOptionLabel(key) {
   const option = themeSelect.querySelector(`option[value="${key}"]`);
-  const text = option ? option.textContent : '';
+  // .trim() tira o recuo (nbsp) usado pra indentar visualmente os temas
+  // agrupados na lista suspensa; o rótulo do select fechado fica sem ele
+  const text = (option ? option.textContent : '').trim();
   const firstSpace = text.indexOf(' ');
   return { emoji: text.slice(0, firstSpace), name: text.slice(firstSpace + 1) };
 }
