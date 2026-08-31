@@ -69,6 +69,17 @@ html, body {
   color: #0f0;
 }
 
+/* cabeçalho de grupo "fake": um <option disabled> em vez de <optgroup>,
+   porque <optgroup> tem suporte muito instável a cor/fundo customizados
+   entre navegadores (Firefox nem aceita background nele). O background
+   aqui é respeitado (evita o branco feio padrão); color e font-weight
+   ficam como tentativa "de boa vontade", vários navegadores forçam a
+   cor de texto de opção desabilitada e ignoram isso mesmo assim */
+.theme-picker select option:disabled {
+  background: #000;
+  color: #0a5;
+}
+
 /* seta customizada, fixa ao lado do texto real (não do select invisível) */
 .select-shell::after {
   content: '▾';

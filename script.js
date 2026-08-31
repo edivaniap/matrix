@@ -191,7 +191,9 @@ const savedTheme = localStorage.getItem(STORAGE_KEY) || 'matrix';
 // pega o texto de uma <option> (ex: "🏳️‍⚧️ Trans") e separa emoji do nome
 function splitOptionLabel(key) {
   const option = themeSelect.querySelector(`option[value="${key}"]`);
-  const text = option ? option.textContent : '';
+  // .trim() tira o recuo (nbsp) usado pra indentar visualmente os temas
+  // agrupados na lista suspensa; o rótulo do select fechado fica sem ele
+  const text = (option ? option.textContent : '').trim();
   const firstSpace = text.indexOf(' ');
   return { emoji: text.slice(0, firstSpace), name: text.slice(firstSpace + 1) };
 }
